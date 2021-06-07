@@ -6,10 +6,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.awt.*;
 import java.io.BufferedReader;
@@ -17,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.*;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Optional;
 
 @RestController
@@ -37,7 +35,7 @@ public class UrlController {
     @Autowired
     private Urls urls;
 
-    @GetMapping(path = "/{id}")
+    @GetMapping(path = "direct/{id}")
     @ResponseBody
     public String getRedireciona(@PathVariable Integer id){
 
@@ -46,6 +44,14 @@ public class UrlController {
         return retornaPaginaAcessada(urlModel.get().getOriginal());
     }
 
+    @GetMapping(path = "api/request")
+    @ResponseBody
+    public List<Url> getAll(){
+
+        Iterable<Url> urlModel    = urls.findAll();
+
+        return (List<Url>) urlModel;
+    }
     private String retornaPaginaAcessada(String stringURL) {
         String resposta = "";
 
@@ -120,6 +126,18 @@ public class UrlController {
         }catch (Exception e){
             return "Erro ao incluir a url no banco de dados; \n"+e.getMessage();
         }
+    }
+    @DeleteMapping(path = "api/request/{url}")
+    @ResponseBody
+    public String deleteById(@PathVariable String url){
+        Url urlModel   = urls.findByOriginal(url);
+
+        try {
+            urls.deleteById(urlModel.getId());
+        }catch (Exception e){
+            return "Erro ao tentar excluir: "+e.getMessage();
+        }
+        return urlModel.getOriginal() + " -> Excluído com sucesso!" ;
     }
 
 }
