@@ -93,7 +93,6 @@ public class UrlController {
         if (urlModel != null && urlModel.getOriginal() != null) {
             //se encontrar a url original é para buscar a curta
 
-            urlModel = urls.findByEncurtada(url);
             return  urlModel.getEncurtada();
 
         }else if (urlModel != null && urlModel.getEncurtada() != null){
