@@ -22,7 +22,9 @@ import java.util.Optional;
 @RestController
 public class UrlController {
 
-    private String URL_CURTA = "http://localhost:8080/";
+    private String URL_CURTA = "localhost:8080/";
+    private String HTTP = "http://";
+    private String HTTPS = "https://";
 
     @GetMapping(path = "api/status")
     @ApiOperation("Informa status da API")
@@ -35,26 +37,33 @@ public class UrlController {
     @Autowired
     private Urls urls;
 
-    @GetMapping(path = "{id}")
+    @GetMapping(path = "/{id}")
     @ResponseBody
-    public URL getRedireciona(@PathVariable Integer id) throws MalformedURLException {
+    public String getRedireciona(@PathVariable Integer id){
 
         Optional<Url> urlModel    = urls.findById(id);
-        URL url = new URL(urlModel.get().getOriginal());
 
-        return url;
-//        return retornaPaginaAcessada(urlModel.get().getOriginal());
+        return retornaPaginaAcessada(urlModel.get().getOriginal());
     }
 
     private String retornaPaginaAcessada(String stringURL) {
         String resposta = "";
 
         try {
-            URL url = new URL(stringURL);
+            URL url = new URL(HTTP+stringURL.replace("https://","").replace("http://",""));
             URLConnection connection = url.openConnection();
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(
                             connection.getInputStream()));
+
+            if (!((HttpURLConnection) connection).getResponseMessage().contains("OK")) {
+                url = new URL(HTTPS+stringURL.replace("http://","").replace("https://",""));
+                connection = url.openConnection();
+                in = new BufferedReader(
+                        new InputStreamReader(
+                                connection.getInputStream()));
+
+            }
 
             String inputLine;
 
@@ -104,7 +113,7 @@ public class UrlController {
             urlModel.setOriginal(url);
             urls.save(urlModel);
             urlModel    = urls.findByOriginal(url);
-            urlModel.setEncurtada(URL_CURTA+urlModel.getId());
+            urlModel.setEncurtada(HTTP+URL_CURTA+urlModel.getId());
             urls.save(urlModel);
 
             return urlModel.getEncurtada();
