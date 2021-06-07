@@ -1,10 +1,10 @@
 package com.jevsoftwares.apirestencurtadorurl.model;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
 
-public interface Urls extends JpaRepository<Url,Integer> {
+public interface Urls extends CrudRepository<Url,Integer> {
 
-    Url findByUrlOriginal(String urlOriginal);
+    Url findByOriginal(String original);
 
-    Url findByUrlCurta(String urlCurta);
+    Url findByEncurtada(String encurtada);
 }

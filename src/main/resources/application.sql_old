@@ -1,5 +1,5 @@
 CREATE TABLE testes_url(
         id INT PRIMARY KEY AUTO_INCREMENT,
         urlOriginal VARCHAR(1000),
-        urlCurta VARCHAR(500)
+        urlEncurtada VARCHAR(500)
         )

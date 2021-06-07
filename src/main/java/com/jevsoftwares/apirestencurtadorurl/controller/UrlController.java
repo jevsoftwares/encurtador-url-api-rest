@@ -2,6 +2,9 @@ package com.jevsoftwares.apirestencurtadorurl.controller;
 
 import com.jevsoftwares.apirestencurtadorurl.model.Url;
 import com.jevsoftwares.apirestencurtadorurl.model.Urls;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,7 +22,10 @@ import java.util.Optional;
 @RestController
 public class UrlController {
 
+    private String URL_CURTA = "http://localhost:8080/";
+
     @GetMapping(path = "api/status")
+    @ApiOperation("Informa status da API")
     public String status(){
 
         return "online";
@@ -29,13 +35,15 @@ public class UrlController {
     @Autowired
     private Urls urls;
 
-    @GetMapping(path = "api/{id}")
+    @GetMapping(path = "{id}")
     @ResponseBody
-    public String getRedireciona(@PathVariable Integer id){
+    public URL getRedireciona(@PathVariable Integer id) throws MalformedURLException {
 
         Optional<Url> urlModel    = urls.findById(id);
+        URL url = new URL(urlModel.get().getOriginal());
 
-        return retornaPaginaAcessada(urlModel.get().getUrlOriginal());
+        return url;
+//        return retornaPaginaAcessada(urlModel.get().getOriginal());
     }
 
     private String retornaPaginaAcessada(String stringURL) {
@@ -71,36 +79,35 @@ public class UrlController {
             return "É necessário informar o parâmetro!";
 
         //busca pela url o objeto
-        Url urlModel    = urls.findByUrlOriginal(url);
+        Url urlModel    = urls.findByOriginal(url);
 
-        if (urlModel != null && urlModel.getUrlOriginal() != null) {
+        if (urlModel != null && urlModel.getOriginal() != null) {
             //se encontrar a url original é para buscar a curta
 
-            urlModel = urls.findByUrlCurta(url);
-            return  urlModel.getUrlCurta();
+            urlModel = urls.findByEncurtada(url);
+            return  urlModel.getEncurtada();
 
-        }else if (urlModel == null || urlModel.getUrlCurta() == null){
+        }else if (urlModel != null && urlModel.getEncurtada() != null){
+
             //se encontrar a url curta é para buscar a original
-            return urlModel.getUrlOriginal();
+            return urlModel.getOriginal();
         }
 
         //não encontrando nenhuma das url é para incluir
-        return insertUrl(url, urlModel);
+        return insertUrl(url);
     }
 
-    private String insertUrl(String url, Url urlModel) {
+    private String insertUrl(String url) {
+        Url urlModel = new Url();
 
         try {
-            urlModel.setUrlOriginal(url);
-            urlModel.setUrlCurta(url
-                    .replace("www", "")
-                    .replace(".com", "")
-                    .replace(".br", "")
-                    .replace("http://", "")
-                    .replace("https://",""));
+            urlModel.setOriginal(url);
+            urls.save(urlModel);
+            urlModel    = urls.findByOriginal(url);
+            urlModel.setEncurtada(URL_CURTA+urlModel.getId());
             urls.save(urlModel);
 
-            return urlModel.getUrlCurta();
+            return urlModel.getEncurtada();
 
         }catch (Exception e){
             return "Erro ao incluir a url no banco de dados; \n"+e.getMessage();
